@@ -113,10 +113,10 @@ in rec {
       services.openssh.enable = true;
       services.openssh.permitRootLogin = "prohibit-password";
 
-      security.acme.certs = if enableHttps then {
-        "${routeHost}".email = adminEmail;
-        "${routeHost}".ocspMustStaple = true;
-      } else {};
+      security.acme.certs = if enableHttps then 
+        ({"${routeHost}".email = adminEmail; } 
+          // {"${routeHost}".ocspMustStaple = true ;})
+       else {};
 
       security.acme.${if enableHttps && (terms.security.acme.acceptTerms or false) then "acceptTerms" else null} = true;
     };
