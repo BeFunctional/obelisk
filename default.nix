@@ -115,7 +115,7 @@ in rec {
 
       security.acme.certs = if enableHttps then {
         "${routeHost}".email = adminEmail;
-        ocspMustStaple = true;
+        "${routeHost}".ocspMustStaple = true;
       } else {};
 
       security.acme.${if enableHttps && (terms.security.acme.acceptTerms or false) then "acceptTerms" else null} = true;
