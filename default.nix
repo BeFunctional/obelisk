@@ -115,6 +115,7 @@ in rec {
 
       security.acme.certs = if enableHttps then {
         "${routeHost}".email = adminEmail;
+        ocspMustStaple = true;
       } else {};
 
       security.acme.${if enableHttps && (terms.security.acme.acceptTerms or false) then "acceptTerms" else null} = true;
@@ -143,6 +144,8 @@ in rec {
             proxyWebsockets = true;
             extraConfig = ''
               access_log off;
+              ssl_stapling on;
+              ssl_stapling_verify on;
             '';
           };
         };
