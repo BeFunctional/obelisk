@@ -151,7 +151,7 @@ in rec {
         wantedBy = [ "multi-user.target" ];
         after = [ "network.target" ];
         restartIfChanged = true;
-        path = [ pkgs.gnutar ];
+        path = [ pkgs.gnutar pkgs.vips pkgs.ipfs pkgs.mupdf ];
         script = ''
           ln -sft . '${exe}'/*
           mkdir -p log
