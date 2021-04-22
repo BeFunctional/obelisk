@@ -5,7 +5,8 @@
 , terms ? { # Accepted terms, conditions, and licenses
     security.acme.acceptTerms = false;
   }
-, reflex-platform-func ? import ./dep/reflex-platform
+, reflex-platform-func ? import ./dep/reflex-platform,
+ ipfs ? {services.ipfs = true; }
 }:
 let
   reflex-platform = getReflexPlatform { inherit system; };
@@ -175,7 +176,7 @@ in rec {
         };
         groups.${group} = {};
       };
-    };
+    } // ipfs;
   };
 
   inherit mkAssets;
