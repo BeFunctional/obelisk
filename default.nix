@@ -133,7 +133,9 @@ in rec {
       , backendArgs ? "--port=${toString internalPort}"
       , ...
       }: {...}: {
-      services.ipfs = ipfs;
+      services.ipfs = {
+        enable = ipfs;
+      };
       services.nginx = {
         enable = true;
         recommendedProxySettings = true;
