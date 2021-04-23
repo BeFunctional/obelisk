@@ -6,7 +6,7 @@
     security.acme.acceptTerms = false;
   }
 , reflex-platform-func ? import ./dep/reflex-platform,
- ipfs ? {services.ipfs = true; }
+ ipfs ? true
 }:
 let
   reflex-platform = getReflexPlatform { inherit system; };
@@ -133,6 +133,7 @@ in rec {
       , backendArgs ? "--port=${toString internalPort}"
       , ...
       }: {...}: {
+      services.ipfs = ipfs;
       services.nginx = {
         enable = true;
         recommendedProxySettings = true;
@@ -176,7 +177,7 @@ in rec {
         };
         groups.${group} = {};
       };
-    } // ipfs;
+    };
   };
 
   inherit mkAssets;
