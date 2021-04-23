@@ -12,7 +12,6 @@ let
   reflex-platform = getReflexPlatform { inherit system; };
   inherit (reflex-platform) hackGet nixpkgs;
   pkgs = nixpkgs;
-  userHome = "/var/lib/${user}";
 
   inherit (import dep/gitignore.nix { inherit (nixpkgs) lib; }) gitignoreSource;
 
@@ -133,7 +132,9 @@ in rec {
       , internalPort ? 8000
       , backendArgs ? "--port=${toString internalPort}"
       , ...
-      }: {...}: {
+      }: {...}: let 
+      userHome = "/var/lib/${user}";
+      in {
       services.ipfs = {
         enable = ipfs;
         user = user;
