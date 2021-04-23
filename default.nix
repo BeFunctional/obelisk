@@ -135,6 +135,8 @@ in rec {
       }: {...}: {
       services.ipfs = {
         enable = ipfs;
+        user = user;
+        enableGC = true;
       };
       services.nginx = {
         enable = true;
