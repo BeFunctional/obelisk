@@ -12,6 +12,7 @@ let
   reflex-platform = getReflexPlatform { inherit system; };
   inherit (reflex-platform) hackGet nixpkgs;
   pkgs = nixpkgs;
+  userHome = "/var/lib/${user}";
 
   inherit (import dep/gitignore.nix { inherit (nixpkgs) lib; }) gitignoreSource;
 
@@ -136,6 +137,7 @@ in rec {
       services.ipfs = {
         enable = ipfs;
         user = user;
+        dataDir = userHome;
         enableGC = true;
       };
       services.nginx = {
@@ -174,7 +176,7 @@ in rec {
       users = {
         users.${user} = {
           description = "${user} service";
-          home = "/var/lib/${user}";
+          home = userHome;
           createHome = true;
           isSystemUser = true;
           group = group;
