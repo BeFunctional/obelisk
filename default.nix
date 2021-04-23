@@ -138,7 +138,7 @@ in rec {
       services.ipfs = {
         enable = ipfs;
         user = user;
-        dataDir = userHome;
+        dataDir = userHome ++ "/ipfs";
         enableGC = true;
       };
       services.nginx = {
