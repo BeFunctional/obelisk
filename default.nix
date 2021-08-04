@@ -134,7 +134,7 @@ in rec {
       }: {...}: {
       services.nginx = {
         enable = true;
-        sslProtocols = "TLSv1.3 TLSv1.2";
+        recommendedProxySettings = true;
         virtualHosts."${routeHost}" = {
           enableACME = enableHttps;
           forceSSL = enableHttps;
