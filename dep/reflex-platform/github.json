@@ -1,8 +1,8 @@
 {
-  "owner": "reflex-frp",
+  "owner": "BeFunctional",
   "repo": "reflex-platform",
-  "branch": "nixpkgs-20.09",
+  "branch": "ghc-8.10-backport-big-sur",
   "private": false,
-  "rev": "e8e56516b1df0c6e7024bc0e690f54fcddf79a19",
-  "sha256": "0xb2hdps7bsyd6y84if3317w9fbcpcjh4whrvrhz6mskcw069xjp"
+  "rev": "321d20caffa0c4dff84e514f016d3dceafd848d8",
+  "sha256": "0s3syz2bkz39mqxpvdv18bbwd3k5l9ivpx1fgnqmfy1n8yy7z7v7"
 }
