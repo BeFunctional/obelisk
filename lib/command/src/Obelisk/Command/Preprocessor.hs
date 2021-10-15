@@ -10,7 +10,7 @@ import Data.List (intersperse, isPrefixOf, sortOn)
 import Data.Maybe (fromMaybe)
 import qualified Data.Text.Lazy.Builder as TL
 import qualified Data.Text.Lazy.Encoding as TL
-import Distribution.Compiler (CompilerFlavor (..), perCompilerFlavorToList)
+import Distribution.Compiler (CompilerFlavor (..))
 import Language.Haskell.Extension (Extension (..), Language(..))
 import System.Directory (canonicalizePath)
 import System.IO (IOMode (..), hPutStrLn, stderr, withFile)
@@ -89,7 +89,6 @@ generateHeader origPath packageInfo =
       = filter (not . isPrefixOf "-O")
       $ fromMaybe []
       $ lookup GHC
-      $ perCompilerFlavorToList
       $ _cabalPackageInfo_compilerOptions packageInfo
     optList = _cabalPackageInfo_cppOptions packageInfo <> ghcOptList
 
