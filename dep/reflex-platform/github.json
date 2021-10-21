@@ -3,6 +3,6 @@
   "repo": "reflex-platform",
   "branch": "ghc-8.10-backport-big-sur",
   "private": false,
-  "rev": "a9b4f868f20c019b019536f6670d5c26f4d2a634",
-  "sha256": "183a31gba3f14fh69ydra30y4zmvqzkw55ac4yy0lq6y59brjz41"
+  "rev": "118fe99e54279a6d34e2983b00c6dea99017f7f0",
+  "sha256": "1gqmwvpwzl12qy718viw2jx8v7kiczkvbz21jhmi8mbj1s7fal93"
 }
