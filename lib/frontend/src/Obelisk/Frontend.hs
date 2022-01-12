@@ -242,13 +242,13 @@ renderFrontendHtml
 renderFrontendHtml configs cookies urlEnc route frontend headExtra bodyExtra = do
   --TODO: We should probably have a "NullEventWriterT" or a frozen reflex timeline
   html <- fmap snd $ liftIO $ renderStatic $ runHydratableT $ fmap fst $ runCookiesT cookies $ runConfigsT configs $ flip runRouteToUrlT urlEnc $ runSetRouteT $ flip runRoutedT (pure route) $
-    el "html" $ do
+    elClass "html" "w-full" $ do
       el "head" $ do
         baseTag
         injectExecutableConfigs configs
         _frontend_head frontend
         headExtra
-      el "body" $ do
+      elClass "body" "h-full overflow-hidden" $ do
         _frontend_body frontend
         bodyExtra
   return $ "<!DOCTYPE html>" <> html
