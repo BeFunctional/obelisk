@@ -145,8 +145,7 @@ deployPush deployPath getNixBuilders = do
         }
       & nixBuildConfig_outLink .~ OutLink_None
       & nixCmdConfig_args .~ (
-        -- [ strArg "hostName" host
-        [ strArg "hostName" $ fmap (\c -> if c == '.' then '_' else c) host
+        [ strArg "hostName" host
         , strArg "adminEmail" adminEmail
         , strArg "routeHost" routeHost
         , strArg "version" version

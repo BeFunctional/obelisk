@@ -69,7 +69,7 @@ newtype CookiesT m a = CookiesT { unCookiesT :: ReaderT Cookies m a }
     , NotReady t
     , PerformEvent t
     , PostBuild t
-    , Prerender t
+    , Prerender js t
     , TriggerEvent t
     , HasDocument
     )

@@ -75,9 +75,6 @@ gitPath = $(staticWhich "git")
 whichPath :: FilePath
 whichPath = $(staticWhich "which")
 
-lnPath :: FilePath
-lnPath = $(staticWhich "ln")
-
 sshKeygenPath :: FilePath
 sshKeygenPath = $(staticWhich "ssh-keygen")
 

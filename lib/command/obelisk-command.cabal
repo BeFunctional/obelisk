@@ -20,7 +20,6 @@ library
     , exceptions
     , extra
     , filepath
-    , fsnotify
     , git
     , github
     , here
@@ -40,8 +39,6 @@ library
     , optparse-applicative
     , placeholders
     , process
-    , reflex
-    , reflex-fsnotify
     , shell-escape
     , temporary
     , terminal-size
