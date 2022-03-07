@@ -1,8 +1,8 @@
 {
-  "owner": "reflex-frp",
+  "owner": "Befunctional",
   "repo": "reflex-platform",
-  "branch": "pr/716",
+  "branch": "hls-support",
   "private": false,
-  "rev": "a673a1f11d36182a3be4a1202868adc8f0764bf9",
-  "sha256": "1qw1gnhy60idqg8v38mvxybpdp6fbz6vzjmn948w02q59xsbdp31"
+  "rev": "2373dbc8e146f9e25c6288ac222561ed27c477ea",
+  "sha256": "0z5zng9sn557ib1npnclzyl0s0lh7lskd3pfl8905gp8c86pwdh4"
 }
