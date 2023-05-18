@@ -552,6 +552,7 @@ baseGhciOptions =
   , "-no-user-package-db"
   , "-hide-all-packages"
   , "-package-env", "-"
+  , "+RTS", "-xp", "-RTS"
   ]
 
 -- | Run ghci repl
