@@ -588,7 +588,7 @@ runGhcid root chdirToRoot ghciArgs (toList -> packages) mcmd =
       , ["--outputfile=ghcid-output.txt"]
       , map (\x -> "--reload=" <> x) reloadFiles
       , map (\x -> "--restart=" <> x) restartFiles
-      , maybe [] (\cmd -> ["--test=" <> cmd]) mcmd
+      , maybe [] (\cmd -> [cmd]) mcmd
       -- N.B. the subcommand to ghcid has to be itself escaped.
       -- We have to use 'shEscape' instead of 'bashEscape' because
       -- ghcid invokes System.Process with a shell command, which uses @\/bin\/sh@
