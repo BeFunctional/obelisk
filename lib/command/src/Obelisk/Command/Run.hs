@@ -208,18 +208,26 @@ profile profileBasePattern rtsFlags = withProjectRoot "." $ \root -> do
     ] <> rtsFlags
       <> [ "-RTS" ]
 
+data RunConfig = RunConfig
+  { _runConfig_certDir :: Maybe FilePath
+  -- ^ Certificate Directory path (optional)
+  , _runConfig_portOverride :: Maybe Socket.PortNumber
+  -- ^ Override the route's port number?
+  , _runConfig_skipTests :: Bool
+  -- ^ Skip the ghcid test command
+  , _runConfig_useExternalInterpreter :: Bool
+  -- ^ Append -fexternal-interpreter to the ghci invocation
+  }
+
 run
   :: MonadObelisk m
-  => Maybe FilePath
-  -- ^ Certificate Directory path (optional)
-  -> Maybe Socket.PortNumber
-  -- ^ override the route's port number?
+  => RunConfig
   -> FilePath
   -- ^ root folder
   -> PathTree Interpret
   -- ^ interpreted paths
   -> m ()
-run certDir portOverride root interpretPaths = do
+run runConfig root interpretPaths = do
   pkgs <- getParsedLocalPkgs root interpretPaths
   (assetType, assets) <- findProjectAssets root
   manifestPkg <- parsePackagesOrFail . (:[]) . T.unpack =<< getHaskellManifestProjectPath root
@@ -233,16 +241,22 @@ run certDir portOverride root interpretPaths = do
   ghciArgs <- getGhciSessionSettings (pkgs <> manifestPkg) root
   freePort <- getFreePort
   withGhciScriptArgs [] pkgs $ \dotGhciArgs -> do
-    runGhcid root True (ghciArgs <> dotGhciArgs) pkgs $ Just $ unwords
-      [ "Obelisk.Run.run (Obelisk.Run.defaultRunApp"
-      , "Backend.backend"
-      , "Frontend.frontend"
-      , "(Obelisk.Run.runServeAsset " ++ show assets ++ ")"
-      , ") { Obelisk.Run._runApp_backendPort =", show freePort
-      ,   ", Obelisk.Run._runApp_forceFrontendPort =", show portOverride
-      ,   ", Obelisk.Run._runApp_tlsCertDirectory =", show certDir
-      , "}"
-      ]
+    let extraGhciOptions =
+          ["-fexternal-interpreter" | _runConfig_useExternalInterpreter runConfig]
+        effectiveGhciArgs = ghciArgs <> extraGhciOptions <> dotGhciArgs
+        testCommand = if _runConfig_skipTests runConfig
+          then Nothing
+          else Just $ unwords
+            [ "Obelisk.Run.run (Obelisk.Run.defaultRunApp"
+            , "Backend.backend"
+            , "Frontend.frontend"
+            , "(Obelisk.Run.runServeAsset " ++ show assets ++ ")"
+            , ") { Obelisk.Run._runApp_backendPort =", show freePort
+            ,   ", Obelisk.Run._runApp_forceFrontendPort =", show (_runConfig_portOverride runConfig)
+            ,   ", Obelisk.Run._runApp_tlsCertDirectory =", show (_runConfig_certDir runConfig)
+            , "}"
+            ]
+    runGhcid root True effectiveGhciArgs pkgs testCommand
 
 runRepl :: MonadObelisk m => Maybe FilePath -> FilePath -> PathTree Interpret -> m ()
 runRepl mUserGhciConfig root interpretPaths = do

@@ -95,7 +95,13 @@ initForce = switch (long "force" <> help "Allow ob init to overwrite files")
 data ObCommand
    = ObCommand_Init InitSource Bool
    | ObCommand_Deploy DeployCommand
-   | ObCommand_Run [(FilePath, Interpret)] (Maybe FilePath) (Maybe PortNumber)
+   | ObCommand_Run
+      { _obCommandRun_interpretPaths :: [(FilePath, Interpret)]
+      , _obCommandRun_certDir :: Maybe FilePath
+      , _obCommandRun_portOverride :: Maybe PortNumber
+      , _obCommandRun_skipTests :: Bool
+      , _obCommandRun_useExternalInterpreter :: Bool
+      }
    | ObCommand_Profile String [String]
    | ObCommand_Thunk ThunkOption
    | ObCommand_Repl (Maybe FilePath) [(FilePath, Interpret)] -- user @.ghci@ config
@@ -123,7 +129,9 @@ obCommand cfg = hsubparser
       (   ObCommand_Run
       <$> interpretOpts
       <*> certDirOpts
-      <*> (Just <$> option auto (long "port" <> short 'p' <> help "Port number for server; overrides common/config/route" <> metavar "INT") <|> pure Nothing))
+      <*> (Just <$> option auto (long "port" <> short 'p' <> help "Port number for server; overrides common/config/route" <> metavar "INT") <|> pure Nothing)
+      <*> skipTestsOpt
+      <*> externalInterpreterOpt)
       $ progDesc "Run current project in development mode"
     , command "profile" $ info (uncurry ObCommand_Profile <$> profileCommand) $ progDesc "Run current project with profiling enabled"
     , command "thunk" $ info (ObCommand_Thunk <$> thunkOption) $ progDesc "Manipulate thunk directories"
@@ -313,6 +321,12 @@ certDirOpts = optional (strOption (short 'c' <> long "cert" <> metavar "DIRECTOR
   where
     helpText = "Specify a directory in which to find \'cert.pem\', \'chain.pem\' and \'privkey.pem\' for use with TLS."
 
+skipTestsOpt :: Parser Bool
+skipTestsOpt = switch (long "skip-tests" <> help "Skip running the ghcid test command during ob run")
+
+externalInterpreterOpt :: Parser Bool
+externalInterpreterOpt = switch (long "external-interpreter" <> help "Start ghci with -fexternal-interpreter for improved reload times")
+
 shellOpts :: Parser ShellOpts
 shellOpts = ShellOpts
   <$> shellFlags
@@ -444,7 +458,13 @@ ob = \case
       deployPush deployPath deployBuilders
     DeployCommand_Update -> deployUpdate "."
     DeployCommand_Test (platform, extraArgs) -> deployMobile platform extraArgs
-  ObCommand_Run interpretPathsList certDir servePort -> withInterpretPaths interpretPathsList (run certDir servePort)
+  ObCommand_Run interp certDir servePort skipTests useExt ->
+    withInterpretPaths interp (run RunConfig
+      { _runConfig_certDir = certDir
+      , _runConfig_portOverride = servePort
+      , _runConfig_skipTests = skipTests
+      , _runConfig_useExternalInterpreter = useExt
+      })
   ObCommand_Profile basePath rtsFlags -> profile basePath rtsFlags
   ObCommand_Thunk to -> wrapNixThunkError $ case _thunkOption_command to of
     ThunkCommand_Update config -> for_ thunks (updateThunkToLatest config)
