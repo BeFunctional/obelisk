@@ -354,7 +354,7 @@ mkObNixShellProc root isPure chdirToRoot packageNamesAndPaths shellAttr command 
   let setCwd_ = if chdirToRoot then setCwd (Just root) else id
   pure $ setCwd_ $ nixShellRunProc $ defShellConfig
     & nixShellConfig_common . nixCmdConfig_target . target_expr ?~
-        "{root, pkgs, shell}: ((import root {}).passthru.__unstable__.self.extend (_: _: {shellPackages = builtins.fromJSON pkgs;})).project.shells.${shell}"
+        "{root, pkgs, shell}: let shellPackages = builtins.mapAttrs (name: path: builtins.path { inherit path; name = \"shell-package-${name}\"; }) (builtins.fromJSON pkgs); in ((import root {}).passthru.__unstable__.self.extend (_: _: {shellPackages = shellPackages;})).project.shells.${shell}"
     & nixShellConfig_common . nixCmdConfig_args .~
         [ rawArg "root" $ toNixPath $ if chdirToRoot then "." else root
         , strArg "pkgs" (T.unpack $ decodeUtf8 $ BSL.toStrict $ Json.encode packageNamesAndAbsPaths)
