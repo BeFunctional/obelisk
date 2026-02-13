@@ -271,31 +271,9 @@ nixShellForInterpretPaths isPure shell' root interpretPaths cmd = do
 
 -- | Like 'getLocalPkgs' but also parses them and fails if any of them can't be parsed.
 getParsedLocalPkgs :: MonadObelisk m => FilePath -> PathTree Interpret -> m (NonEmpty CabalPackageInfo)
-getParsedLocalPkgs root interpretPaths = do
-  pkgs <- parsePackagesOrFail =<< getLocalPkgs root interpretPaths
-  allLocalPkgs <- parsePackagesOrFail =<< getLocalPkgs root (pathToTree Interpret_Interpret root)
-  pure $ expandLocalDeps pkgs allLocalPkgs
+getParsedLocalPkgs root interpretPaths =
+  parsePackagesOrFail =<< getLocalPkgs root interpretPaths
 
-expandLocalDeps :: NE.NonEmpty CabalPackageInfo -> NE.NonEmpty CabalPackageInfo -> NE.NonEmpty CabalPackageInfo
-expandLocalDeps seeds allLocalPkgs =
-  fromMaybe seeds $ NE.nonEmpty $ mapMaybe (`Map.lookup` allMap) $ Set.toList closureNames
-  where
-    allMap = Map.fromList (map (\p -> (_cabalPackageInfo_packageName p, p)) (toList allLocalPkgs))
-      <> Map.fromList (map (\p -> (_cabalPackageInfo_packageName p, p)) (toList seeds))
-    seedNames = Set.fromList $ map _cabalPackageInfo_packageName (toList seeds)
-    closureNames = go seedNames (Set.toList seedNames)
-    go seen [] = seen
-    go seen (n:ns) =
-      let deps = maybe [] localDeps (Map.lookup n allMap)
-          newDeps = filter (\d -> not (Set.member d seen)) deps
-          seen' = Set.union seen (Set.fromList newDeps)
-      in go seen' (ns ++ newDeps)
-    localDeps pkg =
-      [ depName
-      | dep <- _cabalPackageInfo_buildDepends pkg
-      , let depName = T.pack (prettyShow (depPkgName dep))
-      , Map.member depName allMap
-      ]
 
 -- | Relative paths to local packages of an obelisk project.
 --
