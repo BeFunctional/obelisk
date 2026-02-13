@@ -370,8 +370,8 @@ nixShellWithoutPkgs
   -> String -- ^ Shell attribute to use (e.g. @"ghc"@, @"ghcjs"@, etc.)
   -> Maybe String -- ^ If 'Just' run the given command; otherwise just open the interactive shell
   -> m ()
-nixShellWithoutPkgs root isPure chdirToRoot _packageNamesAndPaths shellAttr command = do
-  runProcess_ =<< mkObNixShellProc root isPure chdirToRoot mempty shellAttr command
+nixShellWithoutPkgs root isPure chdirToRoot packageNamesAndPaths shellAttr command = do
+  runProcess_ =<< mkObNixShellProc root isPure chdirToRoot packageNamesAndPaths shellAttr command
 
 nixShellWithHoogle :: MonadObelisk m => FilePath -> Bool -> String -> Maybe String -> m ()
 nixShellWithHoogle root isPure shell' command = do
