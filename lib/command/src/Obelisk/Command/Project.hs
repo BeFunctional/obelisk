@@ -354,7 +354,7 @@ mkObNixShellProc root isPure chdirToRoot packageNamesAndPaths shellAttr command 
   let setCwd_ = if chdirToRoot then setCwd (Just root) else id
   pure $ setCwd_ $ nixShellRunProc $ defShellConfig
     & nixShellConfig_common . nixCmdConfig_target . target_expr ?~
-        "{root, pkgs, shell}: let shellPackages = builtins.mapAttrs (name: path: builtins.path { inherit path; name = \"shell-package-${name}\"; }) (builtins.fromJSON pkgs); in ((import root {}).passthru.__unstable__.self.extend (_: _: {shellPackages = shellPackages;})).project.shells.${shell}"
+        "{root, pkgs, shell}: let shellPackages = builtins.mapAttrs (name: path: builtins.path { inherit path; name = \"shell-package-${name}\"; }) (builtins.fromJSON pkgs); shellNames = builtins.attrNames shellPackages; in ((import root {}).passthru.__unstable__.self.extend (_: _: {shellPackages = shellPackages; shells-ghc = shellNames; shells-ghcjs = shellNames; shells-ghcSavedSplices = shellNames;})).project.shells.${shell}"
     & nixShellConfig_common . nixCmdConfig_args .~
         [ rawArg "root" $ toNixPath $ if chdirToRoot then "." else root
         , strArg "pkgs" (T.unpack $ decodeUtf8 $ BSL.toStrict $ Json.encode packageNamesAndAbsPaths)
@@ -370,8 +370,8 @@ nixShellWithoutPkgs
   -> String -- ^ Shell attribute to use (e.g. @"ghc"@, @"ghcjs"@, etc.)
   -> Maybe String -- ^ If 'Just' run the given command; otherwise just open the interactive shell
   -> m ()
-nixShellWithoutPkgs root isPure chdirToRoot packageNamesAndPaths shellAttr command = do
-  runProcess_ =<< mkObNixShellProc root isPure chdirToRoot packageNamesAndPaths shellAttr command
+nixShellWithoutPkgs root isPure chdirToRoot _packageNamesAndPaths shellAttr command = do
+  runProcess_ =<< mkObNixShellProc root isPure chdirToRoot mempty shellAttr command
 
 nixShellWithHoogle :: MonadObelisk m => FilePath -> Bool -> String -> Maybe String -> m ()
 nixShellWithHoogle root isPure shell' command = do
