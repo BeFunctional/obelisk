@@ -6,8 +6,11 @@ module Obelisk.Command.Preprocessor where
 
 import qualified Data.ByteString.Lazy as BL
 import Data.Foldable (for_)
-import Data.List (intersperse, isPrefixOf, sortOn)
+import Data.List (foldl', intersperse, isPrefixOf, sortOn)
 import Data.Maybe (fromMaybe)
+import qualified Data.Set as Set
+import qualified Data.Text as T
+import qualified Data.Text.Lazy as L
 import qualified Data.Text.Lazy.Builder as TL
 import qualified Data.Text.Lazy.Encoding as TL
 import Distribution.Compiler (CompilerFlavor (..), perCompilerFlavorToList)
@@ -39,6 +42,12 @@ applyPackages origPath inPath outPath packagePaths' = do
   origPathCanonical <- canonicalizePath origPath
   packagePaths <- traverse canonicalizePath packagePaths'
 
+  parsedPackages <- traverse parseCabalPackage' packagePaths
+  let localPackageNames = Set.fromList
+        [ _cabalPackageInfo_packageName info
+        | Right (Just (_, info)) <- parsedPackages
+        ]
+
   let
     takeDirs = takeWhile hasTrailingPathSeparator
     packageDirs = sortOn (negate . length . takeDirs) $ map splitPath packagePaths
@@ -59,20 +68,36 @@ applyPackages origPath inPath outPath packagePaths' = do
       Right (Just (_, packageInfo)) -> pure $ Just packageInfo
       Right Nothing -> pure Nothing
 
-  writeOutput packageInfo' inPath outPath
+  writeOutput localPackageNames packageInfo' inPath outPath
 
-writeOutput :: Maybe CabalPackageInfo -> FilePath -> FilePath -> IO ()
-writeOutput packageInfo' origPath outPath = withFile outPath WriteMode $ \hOut -> do
+writeOutput :: Set.Set T.Text -> Maybe CabalPackageInfo -> FilePath -> FilePath -> IO ()
+writeOutput localPackageNames packageInfo' origPath outPath = withFile outPath WriteMode $ \hOut -> do
   for_ packageInfo' $ \packageInfo ->
     case generateHeader origPath packageInfo of
       Left e -> do
         hPutStrLn stderr (prettyGenHeaderError origPath e)
         giveUp
       Right header -> hPutTextBuilder hOut header
-  BL.readFile origPath >>= BL.hPut hOut
+  contents <- BL.readFile origPath
+  let rewritten = stripLocalPackageQualifiers localPackageNames (TL.decodeUtf8 contents)
+  BL.hPut hOut (TL.encodeUtf8 rewritten)
   where
     hPutTextBuilder h = BU.hPutBuilder h . TL.encodeUtf8Builder . TL.toLazyText
     giveUp = exitWith (ExitFailure 1)
+
+stripLocalPackageQualifiers :: Set.Set T.Text -> L.Text -> L.Text
+stripLocalPackageQualifiers packageNames input =
+  let packages = map L.fromStrict $ Set.toList packageNames
+  in L.unlines $ fmap (stripLine packages) (L.lines input)
+  where
+    stripLine packages line =
+      foldl'
+        (\acc pkgName ->
+          L.replace ("import \"" <> pkgName <> "\" ") "import "
+            $ L.replace ("import qualified \"" <> pkgName <> "\" ") "import qualified " acc
+        )
+        line
+        packages
 
 -- | Represents an error which may happen when turning a
 -- 'CabalPackageInfo' into a set of GHC pragmas.
