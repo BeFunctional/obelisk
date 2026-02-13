@@ -273,7 +273,7 @@ nixShellForInterpretPaths isPure shell' root interpretPaths cmd = do
 getParsedLocalPkgs :: MonadObelisk m => FilePath -> PathTree Interpret -> m (NonEmpty CabalPackageInfo)
 getParsedLocalPkgs root interpretPaths = do
   pkgs <- parsePackagesOrFail =<< getLocalPkgs root interpretPaths
-  allLocalPkgs <- parsePackagesOrFail =<< getLocalPkgs root (PathTree_Node (Just Interpret_Interpret) mempty)
+  allLocalPkgs <- parsePackagesOrFail =<< getLocalPkgs root (pathToTree Interpret_Interpret root)
   pure $ expandLocalDeps pkgs allLocalPkgs
 
 expandLocalDeps :: NE.NonEmpty CabalPackageInfo -> NE.NonEmpty CabalPackageInfo -> NE.NonEmpty CabalPackageInfo
