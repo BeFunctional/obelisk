@@ -555,11 +555,25 @@ getGhciSessionSettings (toList -> packageInfos) pathBase = do
     packageNames =
       map (mkPackageName . T.unpack . _cabalPackageInfo_packageName)
           packageInfos
-    packageIds installedPackageIndex = Set.toList $ Set.fromList $
-      map (dependencyPackageId installedPackageIndex) $
+    packageIds installedPackageIndex =
+      let
+        interpretedPackageIds =
+          Set.fromList $
+            concatMap
+              (\pkgName -> case lookupDependency installedPackageIndex pkgName anyVersion of
+                ((_, installedPackageInfo) : _) -> map compatPackageKey installedPackageInfo
+                _ -> []
+              )
+              packageNames
+        deps =
           filter ((`notElem` packageNames) . depPkgName) $
-          concatMap _cabalPackageInfo_buildDepends packageInfos <>
-            [Dependency (mkPackageName "obelisk-run") anyVersion (cabalSetSingleton LMainLibName)]
+            concatMap _cabalPackageInfo_buildDepends packageInfos <>
+              [Dependency (mkPackageName "obelisk-run") anyVersion (cabalSetSingleton LMainLibName)]
+      in
+        Set.toList
+          $ Set.fromList
+          $ filter (`Set.notMember` interpretedPackageIds)
+          $ map (dependencyPackageId installedPackageIndex) deps
     dependencyPackageId installedPackageIndex dep =
       case lookupDependency installedPackageIndex (depPkgName dep) (depVerRange dep) of
         ((_version,installedPackageInfo:_) :_) ->
