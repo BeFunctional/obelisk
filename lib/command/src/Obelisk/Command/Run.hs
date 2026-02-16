@@ -558,13 +558,12 @@ getGhciSessionSettings (toList -> packageInfos) pathBase = do
     packageIds installedPackageIndex =
       let
         interpretedPackageIds =
-          Set.fromList $
-            concatMap
-              (\pkgName -> case lookupDependency installedPackageIndex pkgName anyVersion of
-                ((_, installedPackageInfo) : _) -> map compatPackageKey installedPackageInfo
-                _ -> []
-              )
-              packageNames
+          Set.fromList
+            [ compatPackageKey installedPackageInfo
+            | pkgName <- packageNames
+            , (_version, installedPackageInfos) <- lookupDependency installedPackageIndex pkgName anyVersion
+            , installedPackageInfo <- installedPackageInfos
+            ]
         deps =
           filter ((`notElem` packageNames) . depPkgName) $
             concatMap _cabalPackageInfo_buildDepends packageInfos <>
