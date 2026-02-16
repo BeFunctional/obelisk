@@ -28,7 +28,7 @@ import Data.Coerce (coerce)
 import Data.Default (def)
 import Data.Foldable (fold, for_, toList)
 import Data.Functor.Identity (runIdentity)
-import Data.List (intercalate)
+import Data.List (intercalate, isPrefixOf)
 import Data.List.NonEmpty (NonEmpty)
 import Data.Either
 import qualified Data.List.NonEmpty as NE
@@ -568,10 +568,16 @@ getGhciSessionSettings (toList -> packageInfos) pathBase = do
           filter ((`notElem` packageNames) . depPkgName) $
             concatMap _cabalPackageInfo_buildDepends packageInfos <>
               [Dependency (mkPackageName "obelisk-run") anyVersion (cabalSetSingleton LMainLibName)]
+        interpretedPackageIdPrefixes =
+          map ((<> "-") . prettyShow) packageNames
+        isInterpretedPackageId pkgId =
+          any (`isPrefixOf` pkgId) interpretedPackageIdPrefixes
+        shouldKeepPackageId pkgId =
+          (pkgId `Set.notMember` interpretedPackageIds) && not (isInterpretedPackageId pkgId)
       in
         Set.toList
           $ Set.fromList
-          $ filter (`Set.notMember` interpretedPackageIds)
+          $ filter shouldKeepPackageId
           $ map (dependencyPackageId installedPackageIndex) deps
     dependencyPackageId installedPackageIndex dep =
       case lookupDependency installedPackageIndex (depPkgName dep) (depVerRange dep) of
